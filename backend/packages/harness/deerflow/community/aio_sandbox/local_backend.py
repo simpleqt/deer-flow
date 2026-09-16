@@ -522,6 +522,7 @@ class LocalContainerBackend(SandboxBackend):
             container_prefix: Prefix for container names (e.g., "deer-flow-sandbox").
             config_mounts: Volume mount configurations from config (list of VolumeMountConfig).
             environment: Environment variables to inject into containers.
+            network_config: Optional network configuration forwarded to the container runtime.
         """
         self._image = image
         self._base_port = base_port

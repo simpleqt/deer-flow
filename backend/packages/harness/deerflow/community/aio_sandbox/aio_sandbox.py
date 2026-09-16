@@ -504,6 +504,8 @@ class AioSandbox(Sandbox):
 
         Args:
             path: The absolute path of the file to read.
+            start_line: Optional 1-indexed first line to read (defaults to the first line).
+            end_line: Optional 1-indexed inclusive last line to read (defaults to the last line).
 
         Returns:
             The content of the file.

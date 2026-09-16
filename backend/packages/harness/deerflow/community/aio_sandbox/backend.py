@@ -60,6 +60,7 @@ def wait_for_sandbox_ready(
     Args:
         sandbox_url: URL of the sandbox (e.g. http://k3s:30001).
         timeout: Maximum time to wait in seconds.
+        headers: Optional headers (e.g. auth) forwarded to the health endpoint.
 
     Returns:
         True if sandbox is ready, False otherwise.
