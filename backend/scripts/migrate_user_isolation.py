@@ -9,6 +9,7 @@ The script is idempotent — re-running it after a successful migration is a no-
 import argparse
 import logging
 import shutil
+from pathlib import Path
 
 from deerflow.config.paths import Paths, get_paths
 
@@ -244,6 +245,22 @@ def migrate_memory(
         shutil.move(str(legacy_mem), str(dest))
 
 
+def _non_colliding_path(path: Path) -> Path:
+    """Return ``path`` if it is free, else ``stem.N.ext`` with the lowest free ``N``.
+
+    Used for conflict backups so renaming never silently replaces a backup
+    left behind by an earlier migration run.
+    """
+    if not path.exists():
+        return path
+    n = 1
+    while True:
+        candidate = path.with_name(f"{path.stem}.{n}{path.suffix}")
+        if not candidate.exists():
+            return candidate
+        n += 1
+
+
 def migrate_user_profile(
     paths: Paths,
     user_id: str = "default",
@@ -270,7 +287,7 @@ def migrate_user_profile(
 
     dest = paths.user_md_file(user_id)
     if dest.exists():
-        legacy_backup = paths.base_dir / "USER.legacy.md"
+        legacy_backup = _non_colliding_path(paths.base_dir / "USER.legacy.md")
         logger.warning("Destination %s exists; renaming legacy to %s", dest, legacy_backup)
         if not dry_run:
             legacy_profile.rename(legacy_backup)

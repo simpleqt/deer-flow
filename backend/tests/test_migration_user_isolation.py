@@ -341,3 +341,24 @@ class TestMigrateUserProfile:
         assert not (base_dir / "USER.legacy.md").exists()
         assert dest.read_text(encoding="utf-8") == "# current\n"
         assert legacy.exists()
+
+    def test_conflict_second_legacy_never_overwrites_first_backup(self, base_dir: Path, paths: Paths):
+        # A legacy USER.md can reappear after an earlier conflict run left
+        # USER.legacy.md behind (e.g. restore from backup, or re-created file).
+        # The second conflict must not silently replace the first backup.
+        legacy = base_dir / "USER.md"
+        legacy.write_text("# second legacy\n", encoding="utf-8")
+        (base_dir / "USER.legacy.md").write_text("# first backup\n", encoding="utf-8")
+
+        dest = base_dir / "users" / "default" / "USER.md"
+        dest.parent.mkdir(parents=True)
+        dest.write_text("# current\n", encoding="utf-8")
+
+        from scripts.migrate_user_isolation import migrate_user_profile
+
+        migrate_user_profile(paths, user_id="default")
+
+        assert (base_dir / "USER.legacy.md").read_text(encoding="utf-8") == "# first backup\n"
+        assert (base_dir / "USER.legacy.1.md").read_text(encoding="utf-8") == "# second legacy\n"
+        assert not legacy.exists()
+        assert dest.read_text(encoding="utf-8") == "# current\n"
