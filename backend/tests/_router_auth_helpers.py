@@ -37,22 +37,12 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from app.gateway.auth.models import User
-from app.gateway.authz import AuthContext, Permissions
+from app.gateway.authz import _ALL_PERMISSIONS, AuthContext
 
-# Default permission set granted to the stub user. Mirrors `_ALL_PERMISSIONS`
-# in authz.py — kept inline so the tests don't import a private symbol.
-_STUB_PERMISSIONS: list[str] = [
-    Permissions.THREADS_READ,
-    Permissions.THREADS_WRITE,
-    Permissions.THREADS_DELETE,
-    Permissions.RUNS_CREATE,
-    Permissions.RUNS_READ,
-    Permissions.RUNS_CANCEL,
-    Permissions.MEMORY_READ,
-    Permissions.MEMORY_WRITE,
-    Permissions.AGENTS_READ,
-    Permissions.AGENTS_WRITE,
-]
+# Default permission set granted to the stub user. Derived from the
+# production registry so the stub can never drift behind it when new
+# permissions land — the helpers are deliberately permissive by design.
+_STUB_PERMISSIONS: list[str] = list(_ALL_PERMISSIONS)
 
 
 def _make_stub_user() -> User:
